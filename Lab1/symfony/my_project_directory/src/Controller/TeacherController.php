@@ -10,15 +10,43 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
+
 
 #[Route('/teacher')]
 final class TeacherController extends AbstractController
 {
     #[Route(name: 'app_teacher_index', methods: ['GET'])]
-    public function index(TeacherRepository $teacherRepository): Response
+    public function index(Request $request, TeacherRepository $teacherRepository, PaginatorInterface $paginator): Response
     {
+        $queryBuilder = $teacherRepository->createQueryBuilder('t');
+
+        if ($request->query->get('first_name')) {
+            $queryBuilder->andWhere('t.firstName LIKE :firstName')
+                ->setParameter('firstName', '%' . $request->query->get('first_name') . '%');
+        }
+
+        if ($request->query->get('last_name')) {
+            $queryBuilder->andWhere('t.lastName LIKE :lastName')
+                ->setParameter('lastName', '%' . $request->query->get('last_name') . '%');
+        }
+
+        if ($request->query->get('email')) {
+            $queryBuilder->andWhere('t.email LIKE :email')
+                ->setParameter('email', '%' . $request->query->get('email') . '%');
+        }
+
+        $itemsPerPage = $request->query->getInt('itemsPerPage', 5);
+
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $request->query->getInt('page', 1),
+            $itemsPerPage
+        );
+
         return $this->render('teacher/index.html.twig', [
-            'teachers' => $teacherRepository->findAll(),
+            'pagination' => $pagination,
+            'itemsPerPage' => $itemsPerPage,
         ]);
     }
 
@@ -71,7 +99,7 @@ final class TeacherController extends AbstractController
     #[Route('/{id}', name: 'app_teacher_delete', methods: ['POST'])]
     public function delete(Request $request, Teacher $teacher, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$teacher->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $teacher->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($teacher);
             $entityManager->flush();
         }

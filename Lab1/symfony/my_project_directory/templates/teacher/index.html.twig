@@ -1,37 +1,41 @@
-{% extends 'base.html.twig' %}
+<h1>Teachers</h1>
 
-{% block title %}Teacher index{% endblock %}
+<form method="get" class="mb-3">
+    <input type="text" name="first_name" value="{{ app.request.get('first_name') }}" placeholder="First Name">
+    <input type="text" name="last_name" value="{{ app.request.get('last_name') }}" placeholder="Last Name">
+    <input type="text" name="email" value="{{ app.request.get('email') }}" placeholder="Email">
 
-{% block body %}
-    <h1>Teacher index</h1>
+    <label>
+        Items per page:
+        <select name="itemsPerPage" onchange="this.form.submit()">
+            <option value="5" {{ itemsPerPage == 5 ? 'selected' : '' }}>5</option>
+            <option value="10" {{ itemsPerPage == 10 ? 'selected' : '' }}>10</option>
+            <option value="20" {{ itemsPerPage == 20 ? 'selected' : '' }}>20</option>
+        </select>
+    </label>
 
-    <table class="table">
-        <thead>
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for teacher in pagination %}
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for teacher in teachers %}
-            <tr>
-                <td>{{ teacher.id }}</td>
-                <td>{{ teacher.name }}</td>
+                <td>{{ teacher.firstName }}</td>
+                <td>{{ teacher.lastName }}</td>
                 <td>{{ teacher.email }}</td>
-                <td>
-                    <a href="{{ path('app_teacher_show', {'id': teacher.id}) }}">show</a>
-                    <a href="{{ path('app_teacher_edit', {'id': teacher.id}) }}">edit</a>
-                </td>
             </tr>
         {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
+            <tr><td colspan="3">No teachers found.</td></tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_teacher_new') }}">Create new</a>
-{% endblock %}
+{{ knp_pagination_render(pagination) }}

@@ -41,3 +41,19 @@
         </table>
     </div>
 @endsection
+
+
+<form method="GET" action="{{ route('teachers.index') }}" class="mb-3 row">
+    <div class="col"><input type="text" name="first_name" value="{{ request('first_name') }}" placeholder="First Name"
+            class="form-control"></div>
+    <div class="col"><input type="text" name="last_name" value="{{ request('last_name') }}" placeholder="Last Name"
+            class="form-control"></div>
+    <div class="col"><input type="email" name="email" value="{{ request('email') }}" placeholder="Email"
+            class="form-control"></div>
+    <div class="col"><input type="number" name="itemsPerPage" value="{{ request('itemsPerPage', 10) }}"
+            placeholder="Items per page" class="form-control"></div>
+    <div class="col-auto"><button class="btn btn-primary">Filter</button></div>
+</form>
+
+<table class="table table-bordered"> ... </table>
+{{ $teachers->links() }}

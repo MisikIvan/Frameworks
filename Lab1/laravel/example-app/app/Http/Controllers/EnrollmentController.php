@@ -9,11 +9,28 @@ use Illuminate\Http\Request;
 
 class EnrollmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $enrollments = Enrollment::with(['student', 'course'])->get();
+        $query = Enrollment::with(['student', 'course']);
+
+        if ($request->filled('student_id')) {
+            $query->where('student_id', $request->student_id);
+        }
+
+        if ($request->filled('course_id')) {
+            $query->where('course_id', $request->course_id);
+        }
+
+        if ($request->filled('enrolled_at')) {
+            $query->whereDate('enrolled_at', $request->enrolled_at);
+        }
+
+        $perPage = $request->input('itemsPerPage', 10);
+        $enrollments = $query->paginate($perPage)->appends($request->query());
+
         return view('enrollments.index', compact('enrollments'));
     }
+
 
     public function create()
     {

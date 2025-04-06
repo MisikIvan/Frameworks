@@ -7,11 +7,28 @@ use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $courses = Course::all();
+        $query = Course::query();
+
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        if ($request->filled('description')) {
+            $query->where('description', 'like', '%' . $request->description . '%');
+        }
+
+        if ($request->filled('credits')) {
+            $query->where('credits', $request->credits);
+        }
+
+        $perPage = $request->input('itemsPerPage', 10);
+        $courses = $query->paginate($perPage)->appends($request->query());
+
         return view('courses.index', compact('courses'));
     }
+
 
     public function create()
     {

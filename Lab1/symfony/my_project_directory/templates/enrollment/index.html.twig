@@ -1,35 +1,38 @@
-{% extends 'base.html.twig' %}
+<h1>Enrollments</h1>
 
-{% block title %}Enrollment index{% endblock %}
+<form method="get" class="mb-3">
+    <input type="text" name="student" value="{{ app.request.get('student') }}" placeholder="Student name">
+    <input type="text" name="course" value="{{ app.request.get('course') }}" placeholder="Course name">
 
-{% block body %}
-    <h1>Enrollment index</h1>
+    <label>
+        Items per page:
+        <select name="itemsPerPage" onchange="this.form.submit()">
+            <option value="5" {{ itemsPerPage == 5 ? 'selected' : '' }}>5</option>
+            <option value="10" {{ itemsPerPage == 10 ? 'selected' : '' }}>10</option>
+            <option value="20" {{ itemsPerPage == 20 ? 'selected' : '' }}>20</option>
+        </select>
+    </label>
 
-    <table class="table">
-        <thead>
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Course</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enrollment in pagination %}
             <tr>
-                <th>Id</th>
-                <th>EnrolledAt</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for enrollment in enrollments %}
-            <tr>
-                <td>{{ enrollment.id }}</td>
-                <td>{{ enrollment.enrolledAt ? enrollment.enrolledAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_enrollment_show', {'id': enrollment.id}) }}">show</a>
-                    <a href="{{ path('app_enrollment_edit', {'id': enrollment.id}) }}">edit</a>
-                </td>
+                <td>{{ enrollment.student.firstName }} {{ enrollment.student.lastName }}</td>
+                <td>{{ enrollment.course.name }}</td>
             </tr>
         {% else %}
-            <tr>
-                <td colspan="3">no records found</td>
-            </tr>
+            <tr><td colspan="2">No enrollments found.</td></tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_enrollment_new') }}">Create new</a>
-{% endblock %}
+{{ knp_pagination_render(pagination) }}

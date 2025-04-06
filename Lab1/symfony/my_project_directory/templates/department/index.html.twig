@@ -1,35 +1,38 @@
-{% extends 'base.html.twig' %}
+<h1>Departments</h1>
 
-{% block title %}Department index{% endblock %}
+<form method="get" class="mb-3">
+    <input type="text" name="name" value="{{ app.request.get('name') }}" placeholder="Name">
+    <input type="text" name="code" value="{{ app.request.get('code') }}" placeholder="Code">
 
-{% block body %}
-    <h1>Department index</h1>
+    <label>
+        Items per page:
+        <select name="itemsPerPage" onchange="this.form.submit()">
+            <option value="5" {{ itemsPerPage == 5 ? 'selected' : '' }}>5</option>
+            <option value="10" {{ itemsPerPage == 10 ? 'selected' : '' }}>10</option>
+            <option value="20" {{ itemsPerPage == 20 ? 'selected' : '' }}>20</option>
+        </select>
+    </label>
 
-    <table class="table">
-        <thead>
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for department in pagination %}
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for department in departments %}
-            <tr>
-                <td>{{ department.id }}</td>
                 <td>{{ department.name }}</td>
-                <td>
-                    <a href="{{ path('app_department_show', {'id': department.id}) }}">show</a>
-                    <a href="{{ path('app_department_edit', {'id': department.id}) }}">edit</a>
-                </td>
+                <td>{{ department.code }}</td>
             </tr>
         {% else %}
-            <tr>
-                <td colspan="3">no records found</td>
-            </tr>
+            <tr><td colspan="2">No departments found.</td></tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_department_new') }}">Create new</a>
-{% endblock %}
+{{ knp_pagination_render(pagination) }}

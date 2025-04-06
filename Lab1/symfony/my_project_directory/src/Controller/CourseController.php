@@ -10,15 +10,42 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/course')]
 final class CourseController extends AbstractController
 {
     #[Route(name: 'app_course_index', methods: ['GET'])]
-    public function index(CourseRepository $courseRepository): Response
+    public function index(Request $request, CourseRepository $courseRepository, PaginatorInterface $paginator): Response
     {
+        $queryBuilder = $courseRepository->createQueryBuilder('c');
+
+        if ($request->query->get('name')) {
+            $queryBuilder->andWhere('c.name LIKE :name')
+                ->setParameter('name', '%' . $request->query->get('name') . '%');
+        }
+
+        if ($request->query->get('description')) {
+            $queryBuilder->andWhere('c.description LIKE :description')
+                ->setParameter('description', '%' . $request->query->get('description') . '%');
+        }
+
+        if ($request->query->get('credits')) {
+            $queryBuilder->andWhere('c.credits = :credits')
+                ->setParameter('credits', $request->query->get('credits'));
+        }
+
+        $itemsPerPage = $request->query->getInt('itemsPerPage', 5);
+
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $request->query->getInt('page', 1),
+            $itemsPerPage
+        );
+
         return $this->render('course/index.html.twig', [
-            'courses' => $courseRepository->findAll(),
+            'pagination' => $pagination,
+            'itemsPerPage' => $itemsPerPage,
         ]);
     }
 
@@ -71,7 +98,7 @@ final class CourseController extends AbstractController
     #[Route('/{id}', name: 'app_course_delete', methods: ['POST'])]
     public function delete(Request $request, Course $course, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$course->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $course->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($course);
             $entityManager->flush();
         }

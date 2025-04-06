@@ -10,15 +10,40 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/enrollment')]
 final class EnrollmentController extends AbstractController
 {
     #[Route(name: 'app_enrollment_index', methods: ['GET'])]
-    public function index(EnrollmentRepository $enrollmentRepository): Response
+    public function index(Request $request, EnrollmentRepository $enrollmentRepository, PaginatorInterface $paginator): Response
     {
+        $queryBuilder = $enrollmentRepository->createQueryBuilder('e')
+            ->leftJoin('e.student', 's')
+            ->leftJoin('e.course', 'c')
+            ->addSelect('s', 'c');
+
+        if ($request->query->get('student')) {
+            $queryBuilder->andWhere('s.firstName LIKE :student OR s.lastName LIKE :student')
+                ->setParameter('student', '%' . $request->query->get('student') . '%');
+        }
+
+        if ($request->query->get('course')) {
+            $queryBuilder->andWhere('c.name LIKE :course')
+                ->setParameter('course', '%' . $request->query->get('course') . '%');
+        }
+
+        $itemsPerPage = $request->query->getInt('itemsPerPage', 5);
+
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $request->query->getInt('page', 1),
+            $itemsPerPage
+        );
+
         return $this->render('enrollment/index.html.twig', [
-            'enrollments' => $enrollmentRepository->findAll(),
+            'pagination' => $pagination,
+            'itemsPerPage' => $itemsPerPage,
         ]);
     }
 
@@ -71,7 +96,7 @@ final class EnrollmentController extends AbstractController
     #[Route('/{id}', name: 'app_enrollment_delete', methods: ['POST'])]
     public function delete(Request $request, Enrollment $enrollment, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$enrollment->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $enrollment->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($enrollment);
             $entityManager->flush();
         }

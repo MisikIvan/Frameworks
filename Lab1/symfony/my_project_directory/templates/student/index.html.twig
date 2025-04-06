@@ -1,39 +1,44 @@
-{% extends 'base.html.twig' %}
+<h1>Students</h1>
 
-{% block title %}Student index{% endblock %}
+<form method="get" class="mb-3">
+    <input type="text" name="name" value="{{ app.request.get('name') }}" placeholder="Name">
+    <input type="text" name="email" value="{{ app.request.get('email') }}" placeholder="Email">
+    <input type="date" name="birthDate" value="{{ app.request.get('birthDate') }}" placeholder="Birth date">
+    <input type="text" name="department" value="{{ app.request.get('department') }}" placeholder="Department">
 
-{% block body %}
-    <h1>Student index</h1>
+    <label>
+        Items per page:
+        <select name="itemsPerPage" onchange="this.form.submit()">
+            <option value="5" {{ itemsPerPage == 5 ? 'selected' : '' }}>5</option>
+            <option value="10" {{ itemsPerPage == 10 ? 'selected' : '' }}>10</option>
+            <option value="20" {{ itemsPerPage == 20 ? 'selected' : '' }}>20</option>
+        </select>
+    </label>
 
-    <table class="table">
-        <thead>
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Birth Date</th>
+            <th>Department</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in pagination %}
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>BirthDate</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for student in students %}
-            <tr>
-                <td>{{ student.id }}</td>
                 <td>{{ student.name }}</td>
                 <td>{{ student.email }}</td>
-                <td>{{ student.birthDate ? student.birthDate|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_student_show', {'id': student.id}) }}">show</a>
-                    <a href="{{ path('app_student_edit', {'id': student.id}) }}">edit</a>
-                </td>
+                <td>{{ student.birthDate ? student.birthDate|date('Y-m-d') : '' }}</td>
+                <td>{{ student.department.name }}</td>
             </tr>
         {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
+            <tr><td colspan="4">No students found.</td></tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_student_new') }}">Create new</a>
-{% endblock %}
+{{ knp_pagination_render(pagination) }}

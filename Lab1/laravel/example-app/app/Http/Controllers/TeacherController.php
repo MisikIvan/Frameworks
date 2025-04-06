@@ -7,11 +7,28 @@ use Illuminate\Http\Request;
 
 class TeacherController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $teachers = Teacher::all();
+        $query = Teacher::query();
+
+        if ($request->filled('first_name')) {
+            $query->where('first_name', 'like', '%' . $request->first_name . '%');
+        }
+
+        if ($request->filled('last_name')) {
+            $query->where('last_name', 'like', '%' . $request->last_name . '%');
+        }
+
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+
+        $perPage = $request->input('itemsPerPage', 10);
+        $teachers = $query->paginate($perPage)->appends($request->query());
+
         return view('teachers.index', compact('teachers'));
     }
+
 
     public function create()
     {

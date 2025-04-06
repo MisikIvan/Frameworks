@@ -10,15 +10,48 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/student')]
 final class StudentController extends AbstractController
 {
     #[Route(name: 'app_student_index', methods: ['GET'])]
-    public function index(StudentRepository $studentRepository): Response
+    public function index(Request $request, StudentRepository $studentRepository, PaginatorInterface $paginator): Response
     {
+        $queryBuilder = $studentRepository->createQueryBuilder('s')
+            ->leftJoin('s.department', 'd') // якщо є зв'язок
+            ->addSelect('d');
+
+        if ($request->query->get('name')) {
+            $queryBuilder->andWhere('s.name LIKE :name')
+                ->setParameter('name', '%' . $request->query->get('name') . '%');
+        }
+
+        if ($request->query->get('email')) {
+            $queryBuilder->andWhere('s.email LIKE :email')
+                ->setParameter('email', '%' . $request->query->get('email') . '%');
+        }
+
+        if ($request->query->get('birthDate')) {
+            $queryBuilder->andWhere('s.birthDate = :birthDate')
+                ->setParameter('birthDate', $request->query->get('birthDate'));
+        }
+
+        if ($request->query->get('department')) {
+            $queryBuilder->andWhere('d.name LIKE :department')
+                ->setParameter('department', '%' . $request->query->get('department') . '%');
+        }
+
+        $itemsPerPage = $request->query->getInt('itemsPerPage', 5);
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $request->query->getInt('page', 1),
+            $itemsPerPage
+        );
+
         return $this->render('student/index.html.twig', [
-            'students' => $studentRepository->findAll(),
+            'pagination' => $pagination,
+            'itemsPerPage' => $itemsPerPage,
         ]);
     }
 
@@ -71,7 +104,7 @@ final class StudentController extends AbstractController
     #[Route('/{id}', name: 'app_student_delete', methods: ['POST'])]
     public function delete(Request $request, Student $student, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$student->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $student->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($student);
             $entityManager->flush();
         }

@@ -10,15 +10,37 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/department')]
 final class DepartmentController extends AbstractController
 {
     #[Route(name: 'app_department_index', methods: ['GET'])]
-    public function index(DepartmentRepository $departmentRepository): Response
+    public function index(Request $request, DepartmentRepository $departmentRepository, PaginatorInterface $paginator): Response
     {
+        $queryBuilder = $departmentRepository->createQueryBuilder('d');
+
+        if ($request->query->get('name')) {
+            $queryBuilder->andWhere('d.name LIKE :name')
+                ->setParameter('name', '%' . $request->query->get('name') . '%');
+        }
+
+        if ($request->query->get('code')) {
+            $queryBuilder->andWhere('d.code LIKE :code')
+                ->setParameter('code', '%' . $request->query->get('code') . '%');
+        }
+
+        $itemsPerPage = $request->query->getInt('itemsPerPage', 5);
+
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $request->query->getInt('page', 1),
+            $itemsPerPage
+        );
+
         return $this->render('department/index.html.twig', [
-            'departments' => $departmentRepository->findAll(),
+            'pagination' => $pagination,
+            'itemsPerPage' => $itemsPerPage,
         ]);
     }
 
@@ -71,7 +93,7 @@ final class DepartmentController extends AbstractController
     #[Route('/{id}', name: 'app_department_delete', methods: ['POST'])]
     public function delete(Request $request, Department $department, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$department->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $department->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($department);
             $entityManager->flush();
         }

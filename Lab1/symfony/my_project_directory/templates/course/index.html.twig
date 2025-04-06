@@ -1,37 +1,41 @@
-{% extends 'base.html.twig' %}
+<h1>Courses</h1>
 
-{% block title %}Course index{% endblock %}
+<form method="get" class="mb-3">
+    <input type="text" name="name" value="{{ app.request.get('name') }}" placeholder="Name">
+    <input type="text" name="description" value="{{ app.request.get('description') }}" placeholder="Description">
+    <input type="number" name="credits" value="{{ app.request.get('credits') }}" placeholder="Credits">
 
-{% block body %}
-    <h1>Course index</h1>
+    <label>
+        Items per page:
+        <select name="itemsPerPage" onchange="this.form.submit()">
+            <option value="5" {{ itemsPerPage == 5 ? 'selected' : '' }}>5</option>
+            <option value="10" {{ itemsPerPage == 10 ? 'selected' : '' }}>10</option>
+            <option value="20" {{ itemsPerPage == 20 ? 'selected' : '' }}>20</option>
+        </select>
+    </label>
 
-    <table class="table">
-        <thead>
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Credits</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in pagination %}
             <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for course in courses %}
-            <tr>
-                <td>{{ course.id }}</td>
-                <td>{{ course.title }}</td>
+                <td>{{ course.name }}</td>
                 <td>{{ course.description }}</td>
-                <td>
-                    <a href="{{ path('app_course_show', {'id': course.id}) }}">show</a>
-                    <a href="{{ path('app_course_edit', {'id': course.id}) }}">edit</a>
-                </td>
+                <td>{{ course.credits }}</td>
             </tr>
         {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
+            <tr><td colspan="3">No courses found.</td></tr>
         {% endfor %}
-        </tbody>
-    </table>
+    </tbody>
+</table>
 
-    <a href="{{ path('app_course_new') }}">Create new</a>
-{% endblock %}
+{{ knp_pagination_render(pagination) }}
