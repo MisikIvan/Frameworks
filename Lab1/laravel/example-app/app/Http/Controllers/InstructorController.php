@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Instructor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class InstructorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:api', 'role:Manager']);
+    }
     public function index(Request $request)
     {
         $query = Instructor::query();

@@ -4,9 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware(['auth:api', 'role:Manager'])->only(['index', 'show', 'edit']);
+        $this->middleware(['auth:api', 'role:Admin'])->only(['destroy', 'store']);
+    }
+
+
     public function index(Request $request)
     {
         $query = Course::query();

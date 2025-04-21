@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:api', 'role:Client']);
+    }
     private $products = [
         ['id' => 1, 'name' => 'Phone', 'price' => 999],
         ['id' => 2, 'name' => 'Laptop', 'price' => 1500],

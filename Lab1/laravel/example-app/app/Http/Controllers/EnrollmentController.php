@@ -6,9 +6,14 @@ use App\Models\Enrollment;
 use App\Models\Student;
 use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EnrollmentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:api', 'role:Manager']);
+    }
     public function index(Request $request)
     {
         $query = Enrollment::with(['student', 'course']);

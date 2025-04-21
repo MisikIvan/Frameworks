@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:api', 'role:Manager'])->only(['index', 'show', 'edit']);
+    }
+
     public function index(Request $request)
     {
         $query = Student::query();

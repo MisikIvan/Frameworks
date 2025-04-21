@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TeacherController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:api', 'role:Manager']);
+    }
     public function index(Request $request)
     {
         $query = Teacher::query();
